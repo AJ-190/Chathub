@@ -162,3 +162,8 @@ Messages are written to the `chat` table before delivery, so history can be fetc
 
 - New accounts are created with `is_verified = False`; the chat WebSocket rejects unverified users. Flip the flag once a user is verified (e.g. `UPDATE users SET is_verified = true WHERE user_id = 1;`).
 - Redis/Celery modules are placeholders and not yet wired into the message flow.
+
+## Author
+
+- Addy Samuel - Backend Engineer 
+- The Unfathomable Builder 🫥
