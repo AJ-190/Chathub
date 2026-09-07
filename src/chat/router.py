@@ -26,24 +26,29 @@ async def send_message(websocket: WebSocket,
         try:
             
             raw = await websocket.receive_text()
-            data = json.load(raw)
+            data = json.loads(raw)
             
-            recipient_id = data['to']
+            recipient_id = int(data['to'])
             body = data['body']
             
             message = await save_message(session,current_user.user_id, recipient_id, body)
 
             outgoing_msg = {
                 "from": current_user.user_id,
-                "messae": body,
+                "message": body,
                 "body": body,
                 "sent_at": message.created_at.isoformat()
             }
             
-            delivered_live = await manager.send_personal_message(recipient_id, {**outgoing_msg}, websocket)
+            delivered_live = await manager.send_personal_message(recipient_id, json.dumps({**outgoing_msg}))
             await websocket.send_json({**outgoing_msg,  "self": True})
         except WebSocketDisconnect:
             await manager.disconnect(current_user.user_id, websocket)
+            break
+        except Exception:
+            await manager.disconnect(current_user.user_id, websocket)
+            await websocket.close()
+            break
             
 async def save_message(session: AsyncSession, sender_id, reciever_id, body):
     message = um.Chat(sender_id=sender_id, reciever_id=reciever_id, message=body)
@@ -62,7 +67,7 @@ async def get_conversations(other_user_id: int,
             select(cm.Chat)
             .where(
                 ((cm.Chat.sender_id == other_user_id) & (cm.Chat.reciever_id == current_user.user_id)) 
-                |  ((cm.Chat.sender_id == other_user_id) & (cm.Chat.reciever_id == current_user.user_id)) 
+                |  ((cm.Chat.sender_id == current_user.user_id) & (cm.Chat.reciever_id == other_user_id))
                 )
     )
     

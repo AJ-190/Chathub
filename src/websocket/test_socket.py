@@ -19,7 +19,7 @@ import asyncio
 import json
 
 async def test():
-    token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjp7InVzZXJfaWQiOjEsInJvbGUiOiJzdXBlcl9hZG1pbiJ9LCJqdGkiOiI4NjBkYmM0Ny0wZDIzLTRjZGItYjcxMi05MTZkMGM2NDk3MGYiLCJleHAiOjE3ODg3NTUxNTIsInJlZnJlc2giOmZhbHNlfQ.Qtr5XS5ADe_K9pvzhMzFoEi_KV29anzbzrZeb-025qE"
+    token= ""
     uri = f"ws://localhost:8000/chat/ws/chat?token={token}"
     async with websockets.connect(uri) as ws:
         # Send a message
