@@ -1,6 +1,6 @@
 from src.db.database import get_db, Base
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import ForeignKey, DateTime, func
+from sqlalchemy import ForeignKey, DateTime, func, Index
 from datetime import datetime
 
 class Chat(Base):
@@ -16,3 +16,7 @@ class Chat(Base):
     sender = relationship("Users", back_populates="sent_chats", foreign_keys=[sender_id])
     receiver = relationship("Users", back_populates="received_chats", foreign_keys=[reciever_id])
     
+    __table_args__ = (
+        Index("ix_messages_sender__recipient", "sender_id", "reciever_id"),
+        Index("ix_messages_recipient_sender", "reciever_id", "sender_id")
+    )

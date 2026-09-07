@@ -12,3 +12,13 @@ async def get_user(user_id: int, current_user: um.Users = Depends(dependencies.r
                    session: AsyncSession = Depends(get_db)):
     
     return await service.get_user(current_user, session, user_id)
+
+
+@router.get("/", response_model=list[schemas.UserCreateResponse])
+async def get_users(current_user = Depends(dependencies.role_checker([um.RoleEnum.SUPER_ADMIN])),
+                     session: AsyncSession = Depends(get_db)):
+    return await service.get_users(current_user, session)
+
+
+# @router.post("/verify/{user_id}", response_model=schemas.UserCreateResponse)
+# async def verufy(user_id: int, current_user: um.user = Depends(dependencies.role_checker(*roles)))

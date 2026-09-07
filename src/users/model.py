@@ -31,4 +31,4 @@ class Users(Base):
     received_chats = relationship("Chat", back_populates="receiver", foreign_keys="Chat.reciever_id", passive_deletes=True)
 
 
-from src.websocket.model import Chat
+from src.chat.model import Chat

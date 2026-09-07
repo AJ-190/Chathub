@@ -30,6 +30,7 @@ class UserCreateResponse(BaseModel):
     name: str
     phone: str
     role: str
+    is_verified: bool
     email: Optional[str] = None
     created_at: datetime
     

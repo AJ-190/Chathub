@@ -20,3 +20,15 @@ async def get_user(current_user: um.Users, session: AsyncSession, user_id: int):
     return user
 
 
+async def get_users(current_user: um.Users, session: AsyncSession):
+    
+    users = (
+        await session.execute(
+            select(um.Users)
+            
+        )
+    ).scalars().all()
+    
+    if not users: 
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found")
+    return users

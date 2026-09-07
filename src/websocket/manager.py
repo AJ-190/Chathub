@@ -1,8 +1,5 @@
 from fastapi import WebSocket, WebSocketDisconnect
-from sqlalchemy import select
-from src.db.database import get_db
-from sqlalchemy.ext.asyncio import AsyncSession
-from fastapi import HTTPException, status, APIRouter
+from fastapi import APIRouter
 
 
 router = APIRouter(tags=['Websocket'])
@@ -10,35 +7,39 @@ router = APIRouter(tags=['Websocket'])
 class ConnectionManager:
     
     def __init__(self):
-        self.active_connections: list = []
+        self.active_connections: dict[int, set[WebSocket]] = {}
         
+    async def connect(self, user_id: int, websocket: WebSocket):
+        if user_id not in self.active_connections:
+            self.active_connections[user_id] = set()
+        self.active_connections[user_id].add(websocket)
         
-    async def connect(self, websocket: WebSocket):
-        await websocket.accept()
-        if websocket in self.active_connections:
+    async def disconnect(self, user_id: int, websocket: WebSocket):
+        connections = self.active_connections.get(user_id)
+        if not connections:
             return
-        self.active_connections.append(websocket)
+        connections.discard(websocket)
+        if not connections:
+            self.active_connections.pop(user_id, None)
         
-    async def disconnect(self, websocket: WebSocket):
-        if websocket not in self.active_connections:
-            return 
-        self.active_connections.remove(websocket)
-        
-    async def send_personal_message(self, websocket: WebSocket, message):
-        try:
-            await websocket.send_text(message)
-        except WebSocketDisconnect:
-            await self.disconnect(websocket)
+    async def send_personal_message(self, user_id: int, message: str):
+        connections = self.active_connections.get(user_id)
+        if not connections:
+            return False
+        for connection in connections:
+            await connection.send_text(message)
+        return True
 
 manager = ConnectionManager()
 
 @router.websocket("/ws/")
-async def websocket_endpoint(websocket: WebSocket):
-    await manager.connect(websocket)
+async def websocket_endpoint(websocket: WebSocket, user_id: int = 0):
+    await websocket.accept()
+    await manager.connect(user_id, websocket)
     try:
         while True:
             
            data =  await websocket.receive_text()
-           await manager.send_personal_message(websocket, data)
+           await manager.send_personal_message(user_id, data)
     except WebSocketDisconnect:
-         await manager.disconnect(websocket)
+         await manager.disconnect(user_id, websocket)
