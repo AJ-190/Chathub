@@ -15,7 +15,7 @@ async def get_user(user_id: int, current_user: um.Users = Depends(dependencies.r
 
 
 @router.get("/", response_model=list[schemas.UserCreateResponse])
-async def get_users(current_user = Depends(dependencies.role_checker([um.RoleEnum.SUPER_ADMIN])),
+async def get_users(current_user = Depends(dependencies.role_checker([*roles])),
                      session: AsyncSession = Depends(get_db)):
     return await service.get_users(current_user, session)
 

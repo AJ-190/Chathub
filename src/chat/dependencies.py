@@ -11,11 +11,11 @@ async def get_current_user(
     token = Query(...),
     session: AsyncSession = Depends(get_db)
 ):
-    token = utils.verify_token(token)
+    token = await utils.verify_token(token)
     from src.main import app
     redis = app.state.redis
     
-    if check_jti_blocked(redis, token["jti"],token['user']["user_id"]):
+    if await check_jti_blocked(redis, token["jti"],token['user']["user_id"]):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
     
     token = await dependencies.AccessTokenRequired(token)
