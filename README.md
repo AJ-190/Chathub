@@ -5,6 +5,7 @@ A real-time chat backend built with FastAPI and WebSockets. Users authenticate w
 ## Features
 
 - JWT authentication (access + refresh tokens, HS256)
+- Token rotation and instant JWT revocation via Redis (jti blocklist)
 - Real-time one-on-one messaging over WebSockets
 - Message persistence with read/unread flag
 - Message history per conversation
@@ -99,6 +100,7 @@ API docs: http://localhost:8000/docs
 | `ALGORITHM` | JWT signing algorithm | `HS256` |
 | `ACCES_TOKEN_EXPIRE` | Access token lifetime (minutes) | `60` |
 | `REFRESH_TOKEN_TIME` | Refresh token lifetime (minutes) | `10080` |
+| `REDIS_URL` | Redis URL for token revocation / jti blocklist | — |
 
 ## API Overview
 
@@ -106,6 +108,8 @@ API docs: http://localhost:8000/docs
 |---|---|---|---|
 | POST | `/auth/sign_up` | Register a new user | — |
 | POST | `/auth/login` | Exchange credentials for tokens | — |
+| POST | `/auth/refresh` | Rotate a refresh token for a new access + refresh pair | Bearer (refresh) |
+| POST | `/auth/logout` | Revoke the current token (jti blocked in Redis) | Bearer |
 | GET | `/users/get/user/{user_id}` | Get a user | Bearer |
 | GET | `/users/` | List all users | Bearer (super_admin) |
 | POST | `/phonebook/create_contact` | Add a contact | Bearer |
