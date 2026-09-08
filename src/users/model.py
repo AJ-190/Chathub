@@ -19,7 +19,7 @@ class Users(Base):
     __tablename__ = "users"
     user_id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     name: Mapped[str] = mapped_column(nullable=False)
-    phone: Mapped[str] = mapped_column(nullable=False)
+    phone: Mapped[str] = mapped_column(nullable=False, unique=True)
     password: Mapped[str] = mapped_column(nullable=False)
     email: Mapped[str] = mapped_column(nullable=True, unique=True)
     role: Mapped[SAEnum] = mapped_column(SAEnum(RoleEnum, values_callable=enum_values), default=RoleEnum.USER, server_default=RoleEnum.USER.value, nullable=False)

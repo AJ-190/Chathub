@@ -30,6 +30,12 @@ class ConnectionManager:
             await connection.send_text(message)
         return True
 
+    def get_online_ids(self) -> set[int]:
+        return set(self.active_connections.keys())
+
+    async def is_online(self, user_id: int) -> bool:
+        return user_id in self.get_online_ids()
+
 manager = ConnectionManager()
 
 @router.websocket("/ws/")

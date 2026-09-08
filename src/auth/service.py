@@ -4,7 +4,7 @@ from src.auth import schemas, utils, dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.users import model as um
 from src.auth.utils import Token
-from src.db.redis import block_jti
+from src.db.redis import block_jti, check_jti_blocked
 from datetime import datetime, timezone
 
 
@@ -48,7 +48,9 @@ async def login(credentials  ,session: AsyncSession):
     }
     
 
-async def logout(token: schemas.RefreshLoginToken, current_user: um.Users, session: AsyncSession):
+
+
+async def logout(token: schemas.RefreshLogoutToken, current_user: um.Users, session: AsyncSession):
     
     from src.main import app
     redis_ = app.state.redis
@@ -63,7 +65,7 @@ async def logout(token: schemas.RefreshLoginToken, current_user: um.Users, sessi
         )
     ).scalar_one_or_none()
     
-    expire = token["exp"] - datetime.now(timezone.utc).timestamp()
+    expire = token["exp"] - int(datetime.now(timezone.utc).timestamp())
     
     if not user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")

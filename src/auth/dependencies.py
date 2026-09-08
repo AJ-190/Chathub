@@ -14,10 +14,14 @@ async def verify_token(creds: HTTPAuthorizationCredentials = Depends(bearer_sche
       from src.main import app
       
       redis = app.state.redis
-      if check_jti_blocked(redis, token["jti"], token["user"]["user_id"]):
-          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inva;id token")
+      if await check_jti_blocked(redis, token["jti"], int(token["user"]["user_id"])):
+          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
       
       return token
+
+
+def verify_raw_token(token: str):
+      return utils.verify_token(token)
   
 async def AccessTokenRequired(token):
     if token['refresh']:
@@ -27,6 +31,7 @@ async def AccessTokenRequired(token):
 async def GainRefreshToken(token = Depends(verify_token)):
     if not token['refresh']:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is required")
+    return token
 
 async def RefreshTokenRequired(token):
     if not token["refresh"]:

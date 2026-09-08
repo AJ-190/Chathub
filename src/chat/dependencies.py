@@ -11,7 +11,7 @@ async def get_current_user(
     token = Query(...),
     session: AsyncSession = Depends(get_db)
 ):
-    token = await utils.verify_token(token)
+    token = utils.verify_token(token)
     from src.main import app
     redis = app.state.redis
     

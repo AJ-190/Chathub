@@ -19,14 +19,17 @@ async def get_redis_client() -> airedis.Redis:
 
 async def block_jti(redis: airedis.Redis, jti: str, user_id: int, exp: int) -> bool:
     try:
-        await redis.setex(user_id, exp, jti)
+        await redis.setex(f"blocked_jti:{user_id}", exp, jti)
     except Exception as e:
         print("f Error ocurred while blocking token: {e}")
         
         
 async def check_jti_blocked(redis: airedis.Redis, jti: str, user_id: int):
     try:
-        return await redis.get(user_id)
+        jti_St =  await redis.get(f"blocked_jti:{user_id}")
+        if jti_St == jti:
+            return True
+        return False
     except Exception as e:
         print(f"Error ocurred while checking jti")
         

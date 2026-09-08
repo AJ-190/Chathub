@@ -8,14 +8,28 @@ roles = {um.RoleEnum.USER, um.RoleEnum.SUPER_ADMIN}
 router = APIRouter(prefix="/users", tags=['Users'])
 
 @router.get("/get/user/{user_id}", response_model=schemas.UserCreateResponse)
-async def get_user(user_id: int, current_user: um.Users = Depends(dependencies.role_checker([um.RoleEnum.SUPER_ADMIN, um.RoleEnum.USER])) , 
+async def get_user(user_id: int, current_user: um.Users = Depends(dependencies.role_checker([*roles])) , 
                    session: AsyncSession = Depends(get_db)):
     
     return await service.get_user(current_user, session, user_id)
 
 
+@router.get("/lookup/{phone}", response_model=schemas.UserCreateResponse)
+async def lookup_user_by_phone(phone: str, current_user = Depends(dependencies.role_checker([*roles])),
+                               session = Depends(get_db)):
+    return await service.get_user_by_phone(phone, session)
+
+
+@router.get("/search", response_model=list[schemas.UserCreateResponse])
+async def search_users(q: str = "",
+                       limit: int = 12,
+                       current_user = Depends(dependencies.role_checker([*roles])),
+                       session: AsyncSession = Depends(get_db)):
+    return await service.search_users(q, current_user, session, limit)
+
+
 @router.get("/", response_model=list[schemas.UserCreateResponse])
-async def get_users(current_user = Depends(dependencies.role_checker([*roles])),
+async def get_users(current_user = Depends(dependencies.role_checker([um.RoleEnum.SUPER_ADMIN])),
                      session: AsyncSession = Depends(get_db)):
     return await service.get_users(current_user, session)
 
@@ -30,6 +44,6 @@ async def update_user(credentials: um_schemas.UserUpdate,
 
 @router.delete("/{user_id}", status_code=204)
 async def delete_user(user_id: int, 
-                      current_user = Depends(dependencies.role_checker(*roles)),
+                      current_user = Depends(dependencies.role_checker([*roles])),
                       session = Depends(get_db)):
     return  await service.delete_user(user_id, current_user, session)

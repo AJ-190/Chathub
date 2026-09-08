@@ -50,10 +50,6 @@ async def get_contacts(current_user: um.Users, session: AsyncSession, search: st
             
 
     )
-    ex_contacts = (await session.execute(contacts)).scalars().all()
-    
-    if not ex_contacts:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No contacts found")
     
     if search:
         base_search = f"%{search}%"
@@ -70,9 +66,6 @@ async def get_contacts(current_user: um.Users, session: AsyncSession, search: st
     
         
     searched_contacts = (await session.execute(contacts.order_by(pm.Contacts.created_at).limit(limit).offset(skip))).scalars().all()
-    if not searched_contacts:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No user found")
-    
     return searched_contacts
     
 async def update_contact(post: schemas.ContactUpdate, contact_id: int, current_user: um.Users, session:AsyncSession):
@@ -109,7 +102,7 @@ async def delete_contact(contact_id: int, session: AsyncSession, current_user: u
     
     if not contact:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Contact not found")
-    session.delete(contact)
+    await session.delete(contact)
     await session.commit()
     return 
     

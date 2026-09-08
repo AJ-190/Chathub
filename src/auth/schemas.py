@@ -52,3 +52,6 @@ class TokenReponse(BaseModel):
     
 class RefreshLogoutToken(BaseModel):
     refresh_token: str
+    
+class RefreshRequest(BaseModel):
+    refresh_token: str
