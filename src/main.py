@@ -5,12 +5,15 @@ from src.websocket.manager import router as socket_router
 from src.chat.router import router as chat_router
 from src.db.database import Base, engine
 from fastapi import FastAPI
+from src.db.redis import get_redis_client
 import asyncio
 
 
 
 async def lifespan(app: FastAPI):
+    
     async with engine.begin() as conn:
+        app.state.redis = await get_redis_client()
         await conn.run_sync(Base.metadata.create_all)
     yield
     await engine.dispose()

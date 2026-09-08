@@ -1,9 +1,11 @@
 from fastapi import HTTPException, status
 from sqlalchemy import select, or_
-from src.auth import schemas, utils
+from src.auth import schemas, utils, dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.users import model as um
 from src.auth.utils import Token
+from src.db.redis import block_jti
+from datetime import datetime, timezone
 
 
 async def sign_up(credentials: schemas.UserCreateAccount, session: AsyncSession):
@@ -44,4 +46,28 @@ async def login(credentials  ,session: AsyncSession):
         "refresh_token": refresh_token,
         "type": "Bearer"
     }
+    
+
+async def logout(token: schemas.RefreshLoginToken, current_user: um.Users, session: AsyncSession):
+    
+    from src.main import app
+    redis_ = app.state.redis
+    token = dependencies.RefreshTokenRequired(token)
+    user_id = token["user"]["user_id"]
+    jti = token['jti']
+    
+    user = (
+        await session.execute(
+            select(um.Users)
+            .where(um.Users.user_id == user_id)
+        )
+    ).scalar_one_or_none()
+    
+    expire = token["exp"] - datetime.now(timezone.utc).timestamp()
+    
+    if not user:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
+    
+    await block_jti(redis_, jti, user_id, expire)
+    return "Logout successfullt"
     

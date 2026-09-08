@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     ACCES_TOKEN_EXPIRE: int = 60 
     REFRESH_TOKEN_TIME: int = 7 * 24 * 60
     SECRET_KEY: str 
+    REDIS_URL: str 
     
     model_config = SettingsConfigDict(
         env_file=BASE_DIR / "src" / ".env", 

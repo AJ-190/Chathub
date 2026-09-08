@@ -49,3 +49,6 @@ class TokenReponse(BaseModel):
     type: str
     
     model_config = ConfigDict(from_attributes=True)
+    
+class RefreshLogoutToken(BaseModel):
+    refresh_token: str

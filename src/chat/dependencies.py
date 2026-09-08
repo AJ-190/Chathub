@@ -4,6 +4,7 @@ from src.users import model as um
 from src.auth import dependencies, utils
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from src.db.redis import check_jti_blocked
 
 
 async def get_current_user(
@@ -11,6 +12,12 @@ async def get_current_user(
     session: AsyncSession = Depends(get_db)
 ):
     token = utils.verify_token(token)
+    from src.main import app
+    redis = app.state.redis
+    
+    if check_jti_blocked(redis, token["jti"],token['user']["user_id"]):
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid token")
+    
     token = await dependencies.AccessTokenRequired(token)
     
     user_id = int(token['user']["user_id"])

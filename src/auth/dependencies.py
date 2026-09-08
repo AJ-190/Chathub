@@ -5,12 +5,17 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.db.database import get_db
 from sqlalchemy import select
 from src.users import model as um
+from src.db.redis import check_jti_blocked
+
 
 bearer_scheme = HTTPBearer()
 async def verify_token(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
       token = utils.verify_token(creds.credentials)
+      from src.main import app
       
-      # redis jti bloecker would be checked here
+      redis = app.state.redis
+      if check_jti_blocked(redis, token["jti"], token["user"]["user_id"]):
+          raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inva;id token")
       
       return token
   
@@ -18,6 +23,10 @@ async def AccessTokenRequired(token):
     if token['refresh']:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Access token is required")
     return token
+
+async def GainRefreshToken(token = Depends(verify_token)):
+    if not token['refresh']:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Refresh token is required")
 
 async def RefreshTokenRequired(token):
     if not token["refresh"]:
