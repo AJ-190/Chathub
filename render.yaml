@@ -1,0 +1,20 @@
+services:
+  - type: web
+    name: chathub
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: chathub-redis
+          property: connectionString
+  - type: keyvalue
+    name: chathub-redis
+    plan: free
+    ipAllowList: []
