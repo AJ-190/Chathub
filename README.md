@@ -2,6 +2,8 @@
 
 A real-time chat backend built with FastAPI and WebSockets. Users authenticate with JWT, open a WebSocket connection, and exchange one-on-one messages that are persisted and delivered live to the recipient.
 
+Live deployment: https://chathub-j095.onrender.com
+
 ## Features
 
 - JWT authentication (access + refresh tokens, HS256)
