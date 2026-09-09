@@ -1,20 +1,20 @@
 import redis.asyncio as airedis
 from src.config.core import settings
 
-async def get_redis_client() -> airedis.Redis: 
+async def get_redis_client() -> airedis.Redis | None:
     url = settings.REDIS_URL
-    if not  url:
-        print("Redis ULR not set")
+    if not url:
+        print("Redis URL not set")
         return None
     
     try:
         client = await airedis.from_url(url, decode_responses=True)
         await client.ping()
-        print("Connceted to redis successfully")
+        print("Connected to redis successfully")
+        return client
     except Exception as e:
-        print(f"Error ocurred whole connecting redis: {e}")
-        
-    return client
+        print(f"Error occurred while connecting redis: {e}")
+        return None
 
 
 async def block_jti(redis: airedis.Redis, jti: str, user_id: int, exp: int) -> bool:
