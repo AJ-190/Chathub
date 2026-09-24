@@ -2,12 +2,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from fastapi import APIRouter, Depends, status, HTTPException, WebSocket, WebSocketDisconnect
 from src.users import model as um
 from sqlalchemy import select, or_, and_, func
-from src.chat import dependencies as dps, model as cm, schemas as cs
+from src.chat import model as cm, schemas as cs
 from src.websocket.manager import ConnectionManager
 from src.auth import dependencies as auth_deps
 import json
 from datetime import datetime
 from src.db.database import get_db
+from src.websocket import dependencies as dps
 
 manager = ConnectionManager()
 

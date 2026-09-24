@@ -1,5 +1,6 @@
 from fastapi import HTTPException, status
-from sqlalchemy import select, or_
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from src.auth import schemas, utils, dependencies
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.users import model as um
@@ -9,24 +10,23 @@ from datetime import datetime, timezone
 
 
 async def sign_up(credentials: schemas.UserCreateAccount, session: AsyncSession):
-    user_exist = (
-
-            select(um.Users)
-            .where(um.Users.phone == credentials.phone)
-
-        )
-    if credentials.email:
-        user_exist.where(um.Users.email == credentials.email)
-    
-    exist = (await session.execute(user_exist)).scalar_one_or_none()
-    if exist:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="User already exist")
-    
-    user = um.Users(**credentials.model_dump(exclude=['password', "role"]), password=utils.hash(credentials.password.get_secret_value()))
+    user = um.Users(
+        name=credentials.name.strip(),
+        phone=credentials.phone.strip(),
+        email=credentials.email.strip().lower() if credentials.email else None,
+        password=utils.hash(credentials.password.get_secret_value()),
+    )
     session.add(user)
-    await session.commit()
-    await session.refresh(user)
-    return user
+    try:
+        await session.commit()
+        await session.refresh(user)
+        return user
+    except IntegrityError:
+        await session.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="User already exists",
+        )
 
 
 async def login(credentials  ,session: AsyncSession):
